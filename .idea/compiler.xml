@@ -10,5 +10,8 @@
         <module name="server" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="history" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>
