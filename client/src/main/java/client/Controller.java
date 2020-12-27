@@ -17,12 +17,13 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.apache.commons.io.input.ReversedLinesFileReader;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.ResourceBundle;
 
 
@@ -66,6 +67,12 @@ public class Controller implements Initializable {   // Для того что �
     private Stage regStage;
 
     private RegController regController;
+
+    private static BufferedWriter writerLog;
+    private static long logFileLength;
+    private static PrintWriter printWriter;
+
+
 
 
 
@@ -153,7 +160,7 @@ public class Controller implements Initializable {   // Для того что �
                             textArea.appendText(str + "\n"); // выводим инормацию что подключились
                         }
 
-
+                        addNewClientLog(loginField.getText());
                         //цикл работы
                         while (true) {
                             String str = in.readUTF(); // мы хотим в бесконечном цикле получать данные из входного потока
@@ -176,12 +183,14 @@ public class Controller implements Initializable {   // Для того что �
                                     });
                                 }
                             } else {
+                                addMsgToClientLog(str);
                                 textArea.appendText(str + "\n"); // передом  это же сообщение в текстАрию
                             }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                     } finally {
+                        printWriter.close();
                         System.out.println("Мы отключились от сервера");
                         setAuthenticated(false); // при отключении меняем картинки на старые
                         try {
@@ -296,6 +305,53 @@ public class Controller implements Initializable {   // Для того что �
      */
     public void registration(ActionEvent actionEvent) {
         regStage.show(); // говорим ему что бы показал окно регистрации
+    }
+
+    public void addNewClientLog (String login) {
+        String fileName = "history_"+ login +".txt";
+        File file = new File ( "C:\\java\\lesson_Core_chat\\client\\src\\main\\java\\logs\\" +fileName);
+        if(file.exists()){
+            try {
+                int counter = 0;
+                int n_lines = 100;
+                ArrayList<String> list = new ArrayList<>();
+                //FileReader fileReader = new FileReader(file);
+                ReversedLinesFileReader reversedLinesFileReader = new ReversedLinesFileReader(file);
+                try {
+                    while (counter < n_lines) {
+                        list.add(reversedLinesFileReader.readLine());
+                        counter++;
+                    }
+                } catch (NullPointerException o){
+
+                } finally {
+                    reversedLinesFileReader.close();
+                }
+                Collections.reverse(list);
+                for (String st: list){
+                    if(st!=null){
+                        textArea.appendText(st+"\n");}
+                }
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        try {
+            printWriter = new PrintWriter(new FileWriter(file, true));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addMsgToClientLog (String msg){
+        printWriter.println(msg);
+        printWriter.flush();
     }
 }
 
