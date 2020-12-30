@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 
 public class ClientHandler {
 
@@ -15,10 +16,11 @@ public class ClientHandler {
     private String login;
 
 
-    public ClientHandler(Server server, Socket socket) {  // создаем конструктор который будет отвечать за подключение новых клиентов
+    public ClientHandler(Server server, Socket socket, ExecutorService service) {  // создаем конструктор который будет отвечать за подключение новых клиентов
         try {
             this.server = server;
             this.socket = socket;
+
             in = new DataInputStream(socket.getInputStream()); // входной поток мы подаем в сокет
             out = new DataOutputStream(socket.getOutputStream()); // выходной поток мы подаем в сокет
 
@@ -26,7 +28,7 @@ public class ClientHandler {
 
 
 
-            new Thread(() -> { // в этом потоке запускаем каждый раз работу с новым клиентом
+            service.execute(()  -> { // в этом потоке запускаем каждый раз работу с новым клиентом
                     try {
                         // цикл аунтификации для того что бы если пользователь ошибся то можно бы было еще раз зайти
                         while (true){
@@ -88,7 +90,7 @@ public class ClientHandler {
                             e.printStackTrace();
                         }
                     }
-            }).start();
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
