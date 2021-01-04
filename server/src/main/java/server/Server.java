@@ -8,9 +8,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class Server {
+
+    private ExecutorService service;
 
     private static int PORT = 8189; // создаем порт
     ServerSocket server = null; // создаем сервер
@@ -20,6 +24,7 @@ public class Server {
 
     public Server() {
         clients = new Vector<>(); // создаем лист в котором будет хранить клиентов
+        service = Executors.newCachedThreadPool();
         try {
             authService = new SimpleAuthService();
         } catch (SQLException throwables) {
@@ -35,18 +40,20 @@ public class Server {
             while (true) {
                 socket = server.accept(); // начинаем ждать что бы кто нить подключился
                 System.out.println("Клиент подключился"); // выводим в консоль что клиент подключился
-                new ClientHandler(this, socket); // создаем новых клиентов. передаем ему сервер и сокет
+                new ClientHandler(this, socket, service); // создаем новых клиентов. передаем ему сервер и сокет
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
+                service.shutdown();
                 server.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
 
     /**
      * метод для отправки сообений всем клиентам
