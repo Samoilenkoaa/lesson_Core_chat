@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
 
 public class ClientHandler {
 
@@ -33,7 +34,7 @@ public class ClientHandler {
                         // цикл аунтификации для того что бы если пользователь ошибся то можно бы было еще раз зайти
                         while (true){
                             String str = in.readUTF();
-
+                            server.logger.log(Level.INFO, "клиент прислал сообщение/команду");
                             if (str.startsWith("/auth")){
                                 String[] token = str.split("\\s");
                                 String newNick = server.getAuthService().getNicknameByLoginAndPassword(token[1], token[2]);
@@ -72,9 +73,9 @@ public class ClientHandler {
                         // цикл работы
                         while (true) {
                             String str = in.readUTF(); // мы хотим в бесконечном цикле получать данные из входного потока
-
                             if (str.equals("/end")) {
                                 out.writeUTF("/end");
+
                                 break;
                             }
                             server.broadCastMsg(this, str); // посылаем всем клиентам собщение

@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Server {
@@ -21,10 +25,14 @@ public class Server {
     Socket socket = null; // создаем соект которй выделяет сервер
     List<ClientHandler> clients; // создаем лист для того что бы всем отправлять сообщения
     private AuthService authService;
+    Logger logger;
 
-    public Server() {
+    public Server() throws IOException {
         clients = new Vector<>(); // создаем лист в котором будет хранить клиентов
         service = Executors.newCachedThreadPool();
+        logger = Logger.getLogger(getClass().getName());
+        Handler fileHandler = new FileHandler("logFile.log", true);
+        logger.addHandler(fileHandler);
         try {
             authService = new SimpleAuthService();
         } catch (SQLException throwables) {
@@ -36,14 +44,17 @@ public class Server {
         try {
             server = new ServerSocket(PORT); // получаем сервер сокет которому передаем порт для подключения
             System.out.println("Сервер запущен"); // выводим что сервер запущен
+            logger.log(Level.INFO, "Сервер запущен");
 
             while (true) {
                 socket = server.accept(); // начинаем ждать что бы кто нить подключился
                 System.out.println("Клиент подключился"); // выводим в консоль что клиент подключился
+                logger.log(Level.INFO, "Клиент подключился");
                 new ClientHandler(this, socket, service); // создаем новых клиентов. передаем ему сервер и сокет
             }
         } catch (IOException e) {
             e.printStackTrace();
+            logger.log(Level.INFO, "Произошла ошибка");
         } finally {
             try {
                 service.shutdown();
